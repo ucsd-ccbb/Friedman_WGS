@@ -11,24 +11,24 @@ vep_cache=/shared/workspace/software/bcbio/genomes/Hsapiens/hg38/vep
 workspace=/scratch/$chr
 mkdir -p $workspace/
 
-#if [ ! $workspace/$vcf ]; then
+if [ ! $workspace/$vcf ]; then
 	aws s3 cp $s3/$vcf $workspace/
 	aws s3 cp $s3/$vcf.tbi $workspace/
-#fi
-#if [ ! $workspace/$fixed_vcf ]; then
+fi
+if [ ! $workspace/$fixed_vcf ]; then
 	bcftools view -h $workspace/$vcf > $workspace/hdr.txt
 	sed -i -E -e 's/Number=1|Number=R|Number=A/Number=./g' $workspace/hdr.txt
 	bcftools reheader -h $workspace/hdr.txt -o $workspace/$fixed_vcf $workspace/$vcf
 	tabix -p vcf $workspace/$fixed_vcf
-#fi
-#if [ ! $workspace/menieres.norm.$chr.vcf.gz ]; then
+fi
+if [ ! $workspace/menieres.norm.$chr.vcf.gz ]; then
 	bcftools norm -m - -c s --fasta-ref $genome_fasta -r chr$chr -Oz \
 	-o $workspace/menieres.norm.$chr.vcf.gz \
 	$workspace/$fixed_vcf
 	tabix -p vcf $workspace/menieres.norm.$chr.vcf.gz
-#fi
+fi
 
-#if [ ! $workspace/menieres.norm.$chr.vep.vcf.gz ]; then
+if [ ! $workspace/menieres.norm.$chr.vep.vcf.gz ]; then
 	tabix -h $workspace/menieres.norm.$chr.vcf.gz chr$chr | \
 	`which vep` \
 	-o $workspace/menieres.norm.$chr.vep.vcf \
@@ -43,7 +43,6 @@ mkdir -p $workspace/
 	--no_intergenic \
 	--coding_only \
 	--pick \
-	--filter_common \
 	--no_stats \
 	--fasta $genome_fasta \
 	--sift b --polyphen b --ccds \
@@ -57,4 +56,4 @@ mkdir -p $workspace/
 	tabix -p vcf $workspace/menieres.norm.$chr.vep.vcf.gz
 	aws s3 cp $workspace/menieres.norm.$chr.vep.vcf.gz $s3/
 	aws s3 cp $workspace/menieres.norm.$chr.vep.vcf.gz.tbi $s3/
-#fi
+fi
