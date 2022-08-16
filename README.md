@@ -10,9 +10,10 @@ This repository should demonstrate how to transform raw WGS fastq files into act
 4. Variant Quality Score Recalibration (VQSR).
 5. Normalize variants - store variants at one record per line in VCF.
 6. Annotate with VEP.
-7. Filter variants.
-8. `for maf in $(ls */*/*maf); do out=$(echo $maf | sed 's/vep/vep.coding/'); awk -F '\t' '{ if($1 != "Unknown") { print }}' $maf > $out; done`
+7. Convert VEP VCF to individual sample MAF.
+8. Filter variants. `for maf in $(ls */*/*maf); do out=$(echo $maf | sed 's/vep/vep.coding/'); awk -F '\t' '{ if($1 != "Unknown") { print }}' $maf > $out; done`
 9. Annotate with gnomAD GENOME.
+10. Further filter for rare and deleterious variants.
 
 ### 1. Variant Calling
 
@@ -106,4 +107,27 @@ becomes
 chr1    15484   .       G       A
 chr1    15484   .       G       T
 ```
-### 7. Filter Variants
+### 7. Convert VEP VCF to individual sample MAF.
+Run `vcf2maf.sh` for each sample.
+
+### 8. Filter Variants
+Copy MAF from S3 to local directory and run:
+```
+for maf in $(ls */*/*maf)
+    do out=$(echo $maf | sed 's/vep/vep.coding/'); awk -F '\t' '{ if($1 != "Unknown") { print }}' $maf > $out
+done
+```
+
+### 9. Annotate with gnomAD GENOME
+We have to annotate the variants with gnomAD Genome because VEP only annotates with gnomAD Exome. We need the WGS allele frequencies because there are huge discrepencies. To do this we have to:
+    1. Combine all sample MAF files into one cohort MAF. Can do it in R with `do.call(rbind, lapply(maf_files, fread))`
+    2. Convert MAF back to VCF so we can annotate.
+    3. Annotate using bcftools to query gnomAD's remote DB. This takes a while so thats why we are doing it on filtered variants.
+    4. Concatenate and sort variants back together.
+    5. Reannotate with VEP.
+Steps 2-5 are done in `maf2vcf_gnomadv3.sh`
+
+### 10. Further filter for rare and deleterious variants.
+Filter for final set and visualize. This is done in RStudio with `maftools` in `menierees_variant_summary.R`
+
+NOTE: You can see this isn't fully automated and there are some manual linker steps required.
