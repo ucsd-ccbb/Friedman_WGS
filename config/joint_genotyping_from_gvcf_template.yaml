@@ -1,0 +1,21 @@
+# Template for joint genotyping of gvcf inputs created with GATK
+---
+details:
+  - analysis: variant2
+    genome_build: hg38
+    # to do multi-sample variant calling, assign samples the same metadata / batch
+    algorithm:
+      variantcaller: gatk-haplotype
+      jointcaller: gatk-haplotype-joint
+      exclude_regions: [altcontigs, highdepth, lcr]
+      coverage_interval: genome
+      tools_on: gatk4
+      effects: false
+      tools_off: gemini
+    resources:
+      GenomicsDBImport:
+        options: ["--genomicsdb-vcf-buffer-size", "16384000"]
+      gatk:
+        jvm_opts: ["-Xms15g", "-Xmx30g"]
+upload:
+  dir: final

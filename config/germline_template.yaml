@@ -1,0 +1,19 @@
+# Germline Variant calling
+---
+details:
+- algorithm:
+    aligner: bwa
+    mark_duplicates: true
+    #recalibrate: gatk
+    exclude_regions: [altcontigs, highdepth, lcr]
+    variantcaller: gatk-haplotype
+    tools_on: [gatk4, gvcf, qualimap_full]
+    tools_off: [gemini]
+    svcaller: cnvkit
+    svprioritize: actionable/ACMG56
+    effects: false
+  analysis: variant2
+  genome_build: hg38
+upload:
+  dir: final
+
