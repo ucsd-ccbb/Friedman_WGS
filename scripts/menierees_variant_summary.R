@@ -1,0 +1,35 @@
+library(data.table)
+library(maftools)
+library(dplyr)
+library(msigdbr)
+library(clusterProfiler)
+
+setwd("~/projects/friedman")
+exp <- read.csv("human_cochlea_fpkm.txt", sep="\t", stringsAsFactors = FALSE)
+exp_keep <- subset(exp, detected == TRUE)
+raw_vars <- fread("menieres.527.gnomadv3.tsv", stringsAsFactors = FALSE, sep="\t")
+vars <- raw_vars
+vars <- subset(vars, (is.na(gnomad_v3_af_popmax)) | (gnomad_v3_af_popmax < 0.05))
+vars <- subset(vars, Hugo_Symbol %in% exp_keep$symbol)
+vars$pathogenic <- ifelse(grepl("benign", vars$CLIN_SIG), no=c("pathogenic"), yes=strsplit(vars$CLIN_SIG, ","))
+vars <- subset(vars, "pathogenic" %in% pathogenic)
+vars$pathogenic <- NULL
+vars <- subset(vars, Variant_Classification != "Splice_Region")
+vars <- unique(vars)
+#vars <- subset(vars, !Variant_Classification %in% c("In_Frame_Ins", "In_Frame_Del"))
+#vars <- subset(vars, Variant_Type == "SNP")
+maf.in <- read.maf(vars, rmFlags = TRUE)
+oncoplot(maf = maf.in, showTumorSampleBarcodes = T, removeNonMutated = F, top = 50, fontSize = 0.4)
+write.table(vars, file="menieres.527.gnomadv3.filtered.tsv", sep = "\t", row.names=FALSE, quote = FALSE)
+#########################################################
+m_df = msigdbr(species = "Homo sapiens", category = "C2") %>% dplyr::filter(gs_subcat %in% c("CP:BIOCARTA", "CP:KEGG","CP:REACTOME"))
+m_t2g = m_df %>% dplyr::select(gs_name, gene_symbol) %>% as.data.frame()
+x <- aggregate(gene_symbol ~., m_t2g, as.vector)
+topgenes <- as.character(vars$Hugo_Symbol)
+pathwayEnrichments <- enricher(gene = topgenes, TERM2GENE = m_t2g, qvalueCutoff = 1)
+(pathwayEnrichmentsDf <- unique(data.frame(pathwayEnrichments)))
+write.table(pathwayEnrichmentsDf, file="~/projects/friedman/friedman_msigdb.tsv", sep="\t", quote=FALSE, row.names=FALSE)
+menieres.genes <- c("GJB2", "CLDN14", "SLC26A4", "ESRRB", "USH1G", "NTN4", "OTOG",
+                   "PRKCB", "FAM136A", "DTNA", "SEMA3D", "DPT", "COCH", "STRC",
+                   "HMX2","TMEM55B", "ANKRD36", "ANKRD36C")
+#vars_filt <- subset(vars_filt, (grepl("damaging", PolyPhen)) | (grepl("deleterious", SIFT)) | (IMPACT == "HIGH"))
