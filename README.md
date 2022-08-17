@@ -20,6 +20,10 @@ This repository should demonstrate how to transform raw WGS fastq files into act
 
 ### 1. Variant Calling
 
+Input: *fastq.gz
+
+Output: *-joint-gatk-haplotype-annotated.vcf.gz
+
 You will first have to create a list of samples to run, and then execute `run_germline.sh`. This script submits `germline.sh` for each sample.
 
 ```
@@ -50,6 +54,10 @@ done
 ```
 ### 2. Fix VCF header
 
+Input: *-joint-gatk-haplotype-annotated.vcf.gz
+
+Output: *-joint-gatk-haplotype-annotated-fixed.vcf.gz
+
 For some reason, bcbio creates both INFO/DP and FORMAT/DP in the VCF header. The joint genotyping code doesn't like this, so we have code to fix it. Execute `run_remove_info_dp.sh`, which runs `remove_info_dp.sh` for each sample and looks like this:
 ```
 #!/bin/bash
@@ -77,6 +85,11 @@ aws s3 cp $workspace/"$sample"-joint-gatk-haplotype-annotated-fixed.vcf.gz.tbi s
 All it does is remove the INFO/DP part of the VCF header.
 
 ### 3. Joint Genotyping
+
+Input: *-joint-gatk-haplotype-annotated-fixed.vcf.gz
+
+Output: menieres-joint-gatk-haplotype-joint-annotated.vcf.gz
+
 Make a metadata file named `friedman_joint_metadata_04182022.csv` containing the path of the fixed VCF, sample name, and batch name ("menieres-joint"). There should be one row per sample, formatted as follows:
 ```
 samplename,description,batch
@@ -95,14 +108,20 @@ qsub \
 -v metadata=$metadata \
 /shared/workspace/projects/friedman/scripts/joint_genotyping.sh
 ```
-Output: menieres-joint-gatk-haplotype-joint-annotated.vcf.gz
 
 ### 4. VQSR
 
-We have to run Variant Quality Score Recalibration after joint genotyping. It may be a parameter you can add in bcbio for joint genotyping, but that was realized after the fact, so we are running it manually.
+Input: menieres-joint-gatk-haplotype-joint-annotated.vcf.gz
+
 Output: menieres-joint-gatk-haplotype-joint-annotated-vqsr.vcf.gz
 
+We have to run Variant Quality Score Recalibration after joint genotyping. It may be a parameter you can add in bcbio for joint genotyping, but that was realized after the fact, so we are running it manually.
+
 ### 5. Normalize Variants and 6. Annotate with VEP
+
+Input: menieres-joint-gatk-haplotype-joint-annotated-vqsr.vcf.gz
+
+Output: menieres-joint-gatk-haplotype-joint-annotated-vqsr-normed.vcf.gz
 
 The purpose of this is to normalize the VCF, so only one variant allele is represented per line so that when the variants are annotated, each gets their own true annotation because VEP only assigns one annotation per line.  Execute `norm_vep.sh` to normalize and annotate with VEP.
 ```
@@ -113,15 +132,24 @@ becomes
 chr1    15484   .       G       A
 chr1    15484   .       G       T
 ```
+
 Output: menieres.norm.vep.vcf.gz
 
 ### 7. Convert VEP VCF to individual sample MAF.
+
 Run `vcf2maf.sh` for each sample.
-Output:
-$sample/vcf/$sample.norm.vep.vcf
-$sample/maf/$sample.norm.vep.maf
+
+Input: menieres.norm.vep.vcf.gz
+
+Output: a. $sample/vcf/$sample.norm.vep.vcf
+        b. $sample/maf/$sample.norm.vep.maf
 
 ### 8. Filter Variants
+
+Input: *.norm.vep.maf
+
+Output: *.norm.vep.coding.maf
+
 Copy MAF from S3 to local directory and run:
 ```
 for maf in $(ls */*/*maf)
@@ -130,6 +158,14 @@ done
 ```
 
 ### 9. Annotate with gnomAD GENOME
+
+Input: *.norm.vep.coding.maf
+
+Intermediate: menieres.531.filtered.tsv
+
+Output: a. *.gnomadv3.vep.vcf
+        b. *.gnomadv3.vep.maf
+        
 We have to annotate the variants with gnomAD Genome because VEP only annotates with gnomAD Exome. We need the WGS allele frequencies because there are huge discrepencies. To do this we have to:
 
     1. Combine all sample MAF files into one cohort MAF. Can do it in R with do.call(rbind, lapply(maf_files, fread))
@@ -145,6 +181,11 @@ We have to annotate the variants with gnomAD Genome because VEP only annotates w
 Steps 2-5 are done in `maf2vcf_gnomadv3.sh`
 
 ### 10. Further filter for rare and deleterious variants.
+
+Input: menieres.527.gnomadv3.tsv (4 samples failed along the way somewhere).
+
+Output: menieres.527.gnomadv3.filtered.tsv
+
 Filter for final set and visualize. This is done in RStudio with `maftools` in `menierees_variant_summary.R`
 
 NOTE: You can see this isn't fully automated and there are some manual linker steps required.
