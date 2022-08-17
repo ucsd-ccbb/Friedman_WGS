@@ -1,5 +1,8 @@
 # Friedman_WGS
 
+### Data
+VCF files: s3://menieres-analysis-results/joint_genotype/2022-04-30_friedman_joint_metadata_04182022/
+
 This repository should demonstrate how to transform raw WGS fastq files into actionable, rare, deleterious variants in the context of Meniere's disease.
 
 ##### Steps
@@ -92,9 +95,12 @@ qsub \
 -v metadata=$metadata \
 /shared/workspace/projects/friedman/scripts/joint_genotyping.sh
 ```
+Output: menieres-joint-gatk-haplotype-joint-annotated.vcf.gz
+
 ### 4. VQSR
 
 We have to run Variant Quality Score Recalibration after joint genotyping. It may be a parameter you can add in bcbio for joint genotyping, but that was realized after the fact, so we are running it manually.
+Output: menieres-joint-gatk-haplotype-joint-annotated-vqsr.vcf.gz
 
 ### 5. Normalize Variants and 6. Annotate with VEP
 
@@ -107,8 +113,13 @@ becomes
 chr1    15484   .       G       A
 chr1    15484   .       G       T
 ```
+Output: menieres.norm.vep.vcf.gz
+
 ### 7. Convert VEP VCF to individual sample MAF.
 Run `vcf2maf.sh` for each sample.
+Output:
+$sample/vcf/$sample.norm.vep.vcf
+$sample/maf/$sample.norm.vep.maf
 
 ### 8. Filter Variants
 Copy MAF from S3 to local directory and run:
