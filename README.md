@@ -155,6 +155,8 @@ Copy MAF from S3 to local directory and run:
 for maf in $(ls */*/*maf)
     do out=$(echo $maf | sed 's/vep/vep.coding/'); awk -F '\t' '{ if($1 != "Unknown") { print }}' $maf > $out
 done
+
+RScript filterMaf.R
 ```
 
 ### 9. Annotate with gnomAD GENOME
