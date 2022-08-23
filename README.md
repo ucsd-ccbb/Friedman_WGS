@@ -169,18 +169,16 @@ Output: a. *.gnomadv3.vep.vcf
         b. *.gnomadv3.vep.maf
         
 We have to annotate the variants with gnomAD Genome because VEP only annotates with gnomAD Exome. We need the WGS allele frequencies because there are huge discrepencies. To do this we have to:
-
-    1. Combine all sample MAF files into one cohort MAF. Can do it in R with do.call(rbind, lapply(maf_files, fread))
    
-    2. Convert MAF back to VCF so we can annotate.
+    1. Convert MAF back to VCF so we can annotate.
 
-    3. Annotate using bcftools to query gnomAD's remote DB. This takes a while so thats why we are doing it on filtered variants.
+    2. Annotate using bcftools to query gnomAD's remote DB. This takes a while so thats why we are doing it on filtered variants.
     
-    4. Concatenate and sort variants back together.
+    3. Concatenate and sort variants back together.
     
-    5. Reannotate with VEP.
+    4. Reannotate with VEP.
     
-Steps 2-5 are done in `maf2vcf_gnomadv3.sh`
+This is done in `maf2vcf_gnomadv3.sh`
 
 ### 10. Further filter for rare and deleterious variants.
 
