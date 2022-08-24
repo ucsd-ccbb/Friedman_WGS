@@ -1,7 +1,8 @@
 # Friedman_WGS
 
 ### Data
-VCF files: s3://menieres-analysis-results/joint_genotype/2022-04-30_friedman_joint_metadata_04182022/
+Data: s3://menieres-analysis-results/joint_genotype/2022-04-30_friedman_joint_metadata_04182022/
+Final data on CCBB S3: s3://ccbb-projects/2021/20211026_friedman_menieres_disease_wgdnaseq/final_variants_08242022/
 
 This repository should demonstrate how to transform raw WGS fastq files into actionable, rare, deleterious variants in the context of Meniere's disease.
 
@@ -184,7 +185,7 @@ This is done in `maf2vcf_gnomadv3.sh`
 
 Input: menieres.531.gnomadv3.tsv
 
-Output: menieres.filtered.final.tsv
+Output: menieres.531.gnomadv3.filtered.tsv
 
 Filter for final set and visualize. This is done in RStudio with `maftools` in `menierees_variant_summary.R`
 
