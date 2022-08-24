@@ -163,7 +163,7 @@ RScript filterMaf.R
 
 ### 9. Annotate with gnomAD GENOME
 
-Input: menieres.531.filtered.tsv
+Input: menieres.531.intermediate.tsv
 
 Output: a. *.gnomadv3.vep.vcf
         b. *.gnomadv3.vep.maf
