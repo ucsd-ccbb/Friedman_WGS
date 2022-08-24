@@ -148,7 +148,9 @@ Output: a. $sample/vcf/$sample.norm.vep.vcf
 
 Input: *.norm.vep.maf
 
-Output: *.norm.vep.coding.maf
+Intermediate: *.norm.vep.coding.maf
+
+Output: menieres.531.intermediate.tsv
 
 Copy MAF from S3 to local directory and run:
 ```
@@ -161,9 +163,7 @@ RScript filterMaf.R
 
 ### 9. Annotate with gnomAD GENOME
 
-Input: *.norm.vep.coding.maf
-
-Intermediate: menieres.531.filtered.tsv
+Input: menieres.531.filtered.tsv
 
 Output: a. *.gnomadv3.vep.vcf
         b. *.gnomadv3.vep.maf
@@ -182,9 +182,9 @@ This is done in `maf2vcf_gnomadv3.sh`
 
 ### 10. Further filter for rare and deleterious variants.
 
-Input: menieres.527.gnomadv3.tsv (4 samples failed along the way somewhere).
+Input: menieres.531.gnomadv3.tsv
 
-Output: menieres.527.gnomadv3.filtered.tsv
+Output: menieres.filtered.final.tsv
 
 Filter for final set and visualize. This is done in RStudio with `maftools` in `menierees_variant_summary.R`
 
