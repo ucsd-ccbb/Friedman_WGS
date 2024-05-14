@@ -1,4 +1,5 @@
-# Friedman_WGS
+# The genomic landscape of Ménière's disease: a path to endolymphatic hydrops.![image](https://github.com/ucsd-ccbb/Friedman_WGS/assets/5123063/947ffc58-9109-43a2-973a-a25c5c1334be)
+
 
 ### Data
 Data: s3://menieres-analysis-results/joint_genotype/2022-04-30_friedman_joint_metadata_04182022/
